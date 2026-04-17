@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
+    <Folder Include="Data\DataExtensions\" />
+    <Folder Include="Data\Migrations\" />
+    <Folder Include="Data\Seeders\" />
+    <Folder Include="Modules\Academic\" />
+    <Folder Include="Modules\Assessment\" />
+    <Folder Include="Modules\Auth\Application\Common\Mappers\" />
+    <Folder Include="Modules\Auth\Application\Util\" />
+    <Folder Include="Modules\Enrollment\" />
+    <Folder Include="Modules\Notification\" />
+    <Folder Include="Modules\Users\Api\" />
+    <Folder Include="Modules\Users\Application\Services\" />
+    <Folder Include="Modules\Users\Domain\Interfaces\" />
+    <Folder Include="Modules\Users\Domain\Models\" />
+    <Folder Include="Modules\Users\Infrastructure\" />
+    <Folder Include="Shared\" />
+    <Folder Include="Shared\Dtos\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
+    <PackageReference Include="DotNetEnv" Version="3.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.5" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.5" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
+  </ItemGroup>
+
+</Project>
