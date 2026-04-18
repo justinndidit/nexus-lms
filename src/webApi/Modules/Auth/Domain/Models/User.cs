@@ -9,7 +9,7 @@ public class User
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public List<UserRole> UserRoles { get; private set; } = [];
-    public bool IsActive { get; private set; } = true;
+    public bool IsActive { get; private set; } = false;
     public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
 

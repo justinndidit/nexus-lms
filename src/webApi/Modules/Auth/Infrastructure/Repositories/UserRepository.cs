@@ -27,7 +27,10 @@ public class UserRepository(LMSApiApplicationContext dbContext) : IUserRepositor
     }
 
     public async Task<User?> GetUserByEmail(string email) => 
-        await _dbContext.Users.FirstOrDefaultAsync(u => u.Email == email);
+        await _dbContext.Users
+                .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                .FirstOrDefaultAsync(u => u.Email == email);
 
     public async Task<User?> GetUserById(Guid userId) => 
         await _dbContext.Users.FindAsync(userId);

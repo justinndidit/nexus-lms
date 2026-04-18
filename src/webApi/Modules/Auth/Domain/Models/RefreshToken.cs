@@ -28,4 +28,16 @@ public class RefreshToken
             ExpiryDate = DateTime.UtcNow.AddDays(daysValid)
         };
     }
+
+    public void InvalidateRefreshToken()
+    {
+        IsRevoked = true;
+    }
+
+    public bool IsTokenValid()
+    {
+        return 
+            !IsRevoked &&
+                CreatedAt >= DateTime.UtcNow;
+    }
 }

@@ -5,25 +5,40 @@ namespace webApi.Modules.Auth.Domain.Models;
 public class VerificationToken
 {
     public Guid Id {set; get;}
-    public required string Email{set; get;}
-    public required string Token{set; get;}
+    public string Email{private set; get;} =string.Empty;
+    public string Token{set; get;} = string.Empty;
     public DateTime ExpiryDate{set; get;}
     public bool IsValid{get;set;} = true;
     public DateTime CreatedAt {get; set;}
     public DateTime UpdatedAt {get;set;}
 
+    public VerificationToken(string email, string token)
+    {
+        Email = email;
+        Token = token;
+        CreatedAt = DateTime.UtcNow;
+        ExpiryDate = DateTime.UtcNow.AddMinutes(30);
+    }
     private VerificationToken(){}
 
-    public void InvalidateVerificationToken(VerificationToken token)
+
+    public void InvalidateVerificationToken()
     {
-        token.IsValid = false;
+        IsValid = false;
     }
 
-    public bool IsTokenValid(VerificationToken token)
+    public bool IsTokenValid(string email)
     {
-        return 
-            token.IsValid &&
-                    (token.ExpiryDate - token.CreatedAt).TotalMinutes <= 30 ;
+        return IsValid &&
+             DateTime.UtcNow < ExpiryDate
+             && Email == email;
     }
+
+    public bool IsTokenExpired()
+    {
+        return DateTime.UtcNow >= ExpiryDate;
+    }
+
+    
 
 }
