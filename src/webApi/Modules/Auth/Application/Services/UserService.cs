@@ -5,6 +5,7 @@ using webApi.Application.Repositories;
 using webApi.Data;
 using webApi.Domain.Dtos.Auth;
 using webApi.Domain.Models;
+using webApi.Modules.Auth.Application.Dtos;
 using webApi.Modules.Auth.Domain.Interfaces;
 using webApi.Modules.Users.Application.Dtos;
 
@@ -38,8 +39,8 @@ public class UserService : IUserService
         _logger.LogInformation("db transaction started successfully");
         try
         {
-            if (_userRepo.GetUserByEmail(cmd.Email) is not null)
-                throw new BadHttpRequestException($"user with Email {cmd.Email} already exists");  
+            if (await _userRepo.GetUserByEmail(cmd.Email) is not null)
+                throw new InvalidOperationException($"user with Email {cmd.Email} already exists");  
 
             User user = await _userRepo.CreateUser(
                 new User(cmd.Email, cmd.PasswordHash)
@@ -52,23 +53,17 @@ public class UserService : IUserService
 
             await _userRepo.AssignUserRoles(
                 user.Id,
-                new List<Guid>{}
+                new List<Guid>{role.Id}
             );
              _logger.LogInformation($"default role assigned to user {user.Id} successfully!");
             
             await transaction.CommitAsync();
             
-            //send Email async - worker
-            //generate verification token
-            //populate email data
-            //send email
-            //emit event
-            
             return user;
         }
         catch (Exception e)
         {
-            _logger.LogError($"error occured whilst processing: {e.Message}");
+            _logger.LogError(e, $"error occured whilst processing");
             await transaction.RollbackAsync();
             throw;
         }
@@ -78,7 +73,7 @@ public class UserService : IUserService
     {
         return 
             await _userRepo.GetUserByEmail(email)
-            ?? throw new DllNotFoundException($"user with Email {email} not found!");
+            ?? throw new KeyNotFoundException("User not found");
     }
 
     public async Task<User> UpdateUserPassword(UpdateUserPasswordCommand cmd)
@@ -91,9 +86,27 @@ public class UserService : IUserService
         }
         catch (Exception e)
         {
-            _logger.LogError($"error occured whilst processing request: {e.Message}");
+            _logger.LogError(e,$"error occured whilst processing request");
             throw;
         }
+    }
+
+    public async Task<User> UpdateUserActiveStatus(UpdateUserActiveStatusCommand cmd)
+    {  
+       User user = await GetUserByEmail(cmd.Email);
+       if(!(user.IsActive == cmd.Activate))
+        {
+            if (cmd.Activate)
+            {
+                user.Activate();
+            }
+            else
+            {
+                user.Deactivate();
+            }
+            user = await _userRepo.UpdateUser(user);
+        }
+        return user;
     }
 
     public async Task<bool> UserWithEmailExists(string email)

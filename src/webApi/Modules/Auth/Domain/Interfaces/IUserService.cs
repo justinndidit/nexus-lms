@@ -2,6 +2,7 @@ using System;
 using webApi.Application.Dtos.Auth;
 using webApi.Domain.Dtos.Auth;
 using webApi.Domain.Models;
+using webApi.Modules.Auth.Application.Dtos;
 using webApi.Modules.Auth.Domain.Interfaces;
 using webApi.Modules.Users.Application.Dtos;
 
@@ -14,5 +15,7 @@ public interface IUserService
     public Task<bool> UserWithEmailExists(string email);
 
     public Task<User> UpdateUserPassword(UpdateUserPasswordCommand cmd);
+
+    public Task<User> UpdateUserActiveStatus(UpdateUserActiveStatusCommand cmd);
     
 }
