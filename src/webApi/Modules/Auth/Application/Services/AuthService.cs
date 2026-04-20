@@ -13,8 +13,6 @@ using webApi.Application.Dtos;
 using webApi.Modules.Users.Application.Dtos;
 using webApi.Modules.Auth.Application.Common.Security;
 using webApi.Modules.Auth.Domain.Models;
-using System.Transactions;
-
 namespace webApi.Application.Services;
 
 public class AuthService: IAuthService
@@ -24,7 +22,6 @@ public class AuthService: IAuthService
     private readonly IPasswordHasher _bcrypt;
     private readonly IJwtService _jwtService;
     private readonly IRefreshTokenRepository _refreshTokenRepo;
-    // private readonly IRoleRepository _roleRepo;
     private readonly IVerificationTokenRepository _verificationTokenRepo;
     private readonly IUserService _userService;
 
@@ -33,7 +30,6 @@ public class AuthService: IAuthService
                         IPasswordHasher bcrypt,
                         IRefreshTokenRepository refreshTokenRepo,
                         IJwtService jwtService,
-                        // IRoleRepository roleRepo,
                         ILogger<AuthService> logger,
                         IVerificationTokenRepository verificatonTokenRepo,
                         IUserService userService
@@ -42,7 +38,6 @@ public class AuthService: IAuthService
         _bcrypt = bcrypt;
         _refreshTokenRepo = refreshTokenRepo;
         _jwtService = jwtService;
-        // _roleRepo = roleRepo;
         _dbContext = dbContext;
         _logger = logger;
         _verificationTokenRepo = verificatonTokenRepo;
@@ -59,7 +54,7 @@ public class AuthService: IAuthService
         //send Email async - worker
         //generate verification token
         var verificationCode = AuthTokenGenerator.GenerateCode(6);
-        
+
         //populate email data
         await _verificationTokenRepo.Create(
             new VerificationToken(
@@ -75,37 +70,31 @@ public class AuthService: IAuthService
     }
     public async Task<LoginResponse> Authenticate(LoginRequest req)
     {
-        try
-        {
-            var user = await _userService.GetUserByEmail(req.Email);
-            if( !_bcrypt.Verify(req.Password, user.PasswordHash)) throw new UnauthorizedAccessException("Invalid credentials");
-            if(!user.IsActive) throw new UnauthorizedAccessException("This is user is disabled please contact supports");
-        
-            List<string> roles = UserMapper.ToUserRoles(user); 
-            var tokenData = await _GenerateJwtToken(user, roles);
 
-            return AuthMapper.ToLoginResponse(
-                user.Email,
-                roles,
-                tokenData
-            );
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e,$"error occured whilst processing request");
-            throw;
-        }
+        var user = await _userService.GetUserByEmail(req.Email);
+        if( !_bcrypt.Verify(req.Password, user.PasswordHash)) throw new UnauthorizedAccessException("Invalid credentials");
+        if(!user.IsActive) throw new UnauthorizedAccessException("This is user is disabled please contact supports");
+
+        List<string> roles = UserMapper.ToUserRoles(user);
+        var tokenData = await _GenerateJwtToken(user, roles);
+
+        return AuthMapper.ToLoginResponse(
+            user.Email,
+            roles,
+            tokenData
+        );
+
     }
 
     public async Task<VerifyEmailResponse> VerifyUserEmail(VerifyEmailRequest req)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync();
         try
-        { 
+        {
             var verificationToken = await _verificationTokenRepo.GetTokenByToken(req.VerificationToken);
 
             if(verificationToken is null || !verificationToken.IsTokenValid(req.Email)) throw new UnauthorizedAccessException("Invalid token or expired token");
-           
+
             User user = await _userService.GetUserByEmail(req.Email);
             user.Activate();
             user = await _userService.UpdateUserActiveStatus(
@@ -122,7 +111,7 @@ public class AuthService: IAuthService
             var tokenData = await _GenerateJwtToken(
                 user,
                 AuthMapper.ModelToRoleNames(user.UserRoles));
-            
+
             return new VerifyEmailResponse(
                 user.Email,
                 user.UserRoles.Select(ur=> ur.Role.RoleName).ToList(),//problem
@@ -145,7 +134,7 @@ public class AuthService: IAuthService
             token.IsRevoked = true;
             await _refreshTokenRepo.UpdateAsync(token);
         }
-            
+
         return new LogoutResponse($"refresh token revoked successfully!");
     }
     // public Task<DisableUserResponse> DisableUser(DisableUserRequest req)
@@ -168,10 +157,10 @@ public class AuthService: IAuthService
 
             if(token.ExpiryDate <= DateTime.UtcNow)
                 throw new UnauthorizedAccessException("refresh token expired");
-                
+
             token.InvalidateRefreshToken();
             await _refreshTokenRepo.UpdateAsync(token);
-            
+
             var tokenData = await _GenerateJwtToken(
                 token.User,
                 UserMapper.ToUserRoles(token.User)
@@ -205,7 +194,7 @@ public class AuthService: IAuthService
             //send Email async - worker
             //generate verification token
             var verificationCode = AuthTokenGenerator.GenerateCode(6);
-            
+
             //populate email data
             await _verificationTokenRepo.Create(
                 new VerificationToken(
@@ -227,8 +216,8 @@ public class AuthService: IAuthService
         if(verificationToken is null)
         {
             _logger.LogInformation("token not found!");
-            throw new BadHttpRequestException("Invalid verification token");  
-        } 
+            throw new BadHttpRequestException("Invalid verification token");
+        }
 
         if(!(verificationToken.Email == req.Email)) throw new BadHttpRequestException("Invalid verification token");
 

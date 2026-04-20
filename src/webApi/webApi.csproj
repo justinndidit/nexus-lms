@@ -11,6 +11,9 @@
     <Folder Include="Data\DataExtensions\" />
     <Folder Include="Data\Migrations\" />
     <Folder Include="Data\Seeders\" />
+    <Folder Include="Modules/Rbac/Application/" />
+    <Folder Include="Modules/Rbac/Application/Dtos/" />
+    <Folder Include="Modules/Rbac/Application/Services/" />
     <Folder Include="Modules\Academic\" />
     <Folder Include="Modules\Assessment\" />
     <Folder Include="Modules\Auth\Application\Common\Mappers\" />

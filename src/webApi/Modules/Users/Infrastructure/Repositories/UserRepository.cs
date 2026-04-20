@@ -1,6 +1,5 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using webApi.Application.Dtos.User.Request;
 using webApi.Application.Interfaces;
 using webApi.Data;
 using webApi.Domain.Dtos.Auth;
@@ -26,13 +25,13 @@ public class UserRepository(LMSApiApplicationContext dbContext) : IUserRepositor
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<User?> GetUserByEmail(string email) => 
+    public async Task<User?> GetUserByEmail(string email) =>
         await _dbContext.Users
                 .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                 .FirstOrDefaultAsync(u => u.Email == email);
 
-    public async Task<User?> GetUserById(Guid userId) => 
+    public async Task<User?> GetUserById(Guid userId) =>
         await _dbContext.Users.FindAsync(userId);
 
     public async Task<User> UpdateUser(User user)
@@ -43,7 +42,7 @@ public class UserRepository(LMSApiApplicationContext dbContext) : IUserRepositor
     }
 
     public async void DeleteUser(User user)
-    {        
+    {
      _dbContext.Users.Remove(user);
      await _dbContext.SaveChangesAsync();
     }

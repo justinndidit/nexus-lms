@@ -1,5 +1,4 @@
 using System;
-using webApi.Application.Dtos.User.Request;
 using webApi.Domain.Dtos.Auth;
 using webApi.Domain.Models;
 
@@ -9,10 +8,10 @@ public interface IUserRepository
 {
     Task<User?> GetUserById(Guid userId);
     Task<User?> GetUserByEmail(string email);
-    Task<User> CreateUser(User user); 
+    Task<User> CreateUser(User user);
     Task<User> UpdateUser(User user);
     Task AssignUserRoles(Guid userId, List<Guid> roleIds);
     // Task AssignUserRolesTx(Guid userId, List<Guid> roleIds);
-    // Task CreateUserTx(User user); 
+    // Task CreateUserTx(User user);
 
 }
