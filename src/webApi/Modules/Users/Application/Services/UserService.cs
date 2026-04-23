@@ -1,15 +1,5 @@
-using System;
-using webApi.Application.Dtos.Auth;
-using webApi.Application.Interfaces;
-using webApi.Application.Repositories;
-using webApi.Data;
-using webApi.Domain.Dtos.Auth;
-using webApi.Domain.Models;
-using webApi.Modules.Auth.Application.Dtos;
-using webApi.Modules.Auth.Domain.Interfaces;
-using webApi.Modules.Users.Application.Dtos;
 
-namespace webApi.Application.Services;
+namespace webApi.Modules.Users.Application.Services;
 
 public class UserService : IUserService
 {
@@ -18,55 +8,34 @@ public class UserService : IUserService
     private readonly string _defaultUserRoleName = "student";
     
     private readonly IUserRepository _userRepo;
-    private readonly IRoleRepository _roleRepo;
-
+    private readonly IRbacService _rbacService;
     public UserService(
                         LMSApiApplicationContext dbContext,
                         ILogger<UserService> logger,
                         IUserRepository userRepo,
-                        IRoleRepository roleRepo
+                        IRbacService rbacService
                     )
     {
         _dbContext = dbContext;
         _logger = logger;
         _userRepo = userRepo;
-        _roleRepo = roleRepo;
+        _rbacService = rbacService;
     }
 
-    public async Task<User> CreateUserWithDefaultRole(CreateUserCommand cmd)
+    public async Task<(string userId, string email, List<string> roleNames)> CreateUserWithDefaultRole(string email, string passwordHash)
     {
-        var transaction = await _dbContext.Database.BeginTransactionAsync();
-        _logger.LogInformation("db transaction started successfully");
-        try
-        {
-            if (await _userRepo.GetUserByEmail(cmd.Email) is not null)
-                throw new InvalidOperationException($"user with Email {cmd.Email} already exists");  
+        if (await _userRepo.GetUserByEmail(email) is not null)
+            throw new InvalidOperationException($"user with Email {email} already exists");  
 
-            User user = await _userRepo.CreateUser(
-                new User(cmd.Email, cmd.PasswordHash)
-            );
-            _logger.LogInformation("User created successfully!");
+        User user = await _userRepo.CreateUser(
+            new User(email, passwordHash)
+        );
+        _logger.LogInformation("User created successfully!");
 
-            Role role = await _roleRepo.GetByNameAsync(_defaultUserRoleName)
-                                ?? throw new Exception($"default user role {_defaultUserRoleName} not in database!");
-             _logger.LogInformation($"role {role.Id} fetched successfully!");
+        await _rbacService.AssignUserToRole(user.Id, _defaultUserRoleName);
+        _logger.LogInformation("default role assigned to user");
 
-            await _userRepo.AssignUserRoles(
-                user.Id,
-                new List<Guid>{role.Id}
-            );
-             _logger.LogInformation($"default role assigned to user {user.Id} successfully!");
-            
-            await transaction.CommitAsync();
-            
-            return user;
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, $"error occured whilst processing");
-            await transaction.RollbackAsync();
-            throw;
-        }
+        return (user.Id.ToString(), user.Email, user.UserRoles.Select(ur => ur.Role.RoleName).ToList());
     }
     
     public async Task<User> GetUserByEmail(string email)
@@ -76,12 +45,12 @@ public class UserService : IUserService
             ?? throw new KeyNotFoundException("User not found");
     }
 
-    public async Task<User> UpdateUserPassword(UpdateUserPasswordCommand cmd)
+    public async Task<User> UpdateUserPassword(string email, string passwordHash)
     {
         try
         {
-            User user = await GetUserByEmail(cmd.Email);
-            user.PasswordHash = cmd.PasswordHash;
+            User user = await GetUserByEmail(email);
+            user.PasswordHash = passwordHash;
             return await _userRepo.UpdateUser(user);   
         }
         catch (Exception e)
@@ -91,22 +60,14 @@ public class UserService : IUserService
         }
     }
 
-    public async Task<User> UpdateUserActiveStatus(UpdateUserActiveStatusCommand cmd)
+    public async Task<User> UpdateUserActiveStatus(string email, bool activate)
     {  
-       User user = await GetUserByEmail(cmd.Email);
-       if(!(user.IsActive == cmd.Activate))
-        {
-            if (cmd.Activate)
-            {
-                user.Activate();
-            }
-            else
-            {
-                user.Deactivate();
-            }
-            user = await _userRepo.UpdateUser(user);
-        }
-        return user;
+       var user = await GetUserByEmail(email);
+        if (user.IsActive == activate) return user;
+
+        if (activate) user.Activate();
+        else user.Deactivate();
+        return await _userRepo.UpdateUser(user);
     }
 
     public async Task<bool> UserWithEmailExists(string email)

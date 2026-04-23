@@ -1,6 +1,5 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using webApi.Domain.Models;
 using webApi.Modules.Auth.Domain.Models;
 
 namespace webApi.Data;

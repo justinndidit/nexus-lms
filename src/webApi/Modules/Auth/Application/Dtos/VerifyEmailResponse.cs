@@ -1,4 +1,3 @@
-using webApi.Application.Dtos;
 
 namespace webApi.Modules.Auth.Application.Dtos;
 

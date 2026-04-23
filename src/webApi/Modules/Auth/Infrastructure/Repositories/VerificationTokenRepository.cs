@@ -1,6 +1,5 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using webApi.Application.Dtos;
 using webApi.Data;
 using webApi.Modules.Auth.Domain.Interfaces;
 using webApi.Modules.Auth.Domain.Models;

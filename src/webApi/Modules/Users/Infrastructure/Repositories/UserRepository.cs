@@ -1,11 +1,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using webApi.Application.Interfaces;
 using webApi.Data;
-using webApi.Domain.Dtos.Auth;
-using webApi.Domain.Models;
 
-namespace webApi.Application.Repositories;
+namespace webApi.Modules.Users.Infrastructure.Repositories;
 
 public class UserRepository(LMSApiApplicationContext dbContext) : IUserRepository
 {

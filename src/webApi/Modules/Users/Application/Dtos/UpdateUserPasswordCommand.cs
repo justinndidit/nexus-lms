@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace webApi.Modules.Auth.Domain.Interfaces;
+namespace webApi.Modules.Users.Application.Dtos;
 
 public record UpdateUserPasswordCommand(
     [Required]

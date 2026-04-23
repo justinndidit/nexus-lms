@@ -1,7 +1,7 @@
 using System.Security.Claims;
 using webApi.Modules.Auth.Application.Dtos;
 
-namespace webApi.Application.Interfaces;
+namespace webApi.Modules.Auth.Domain.Interfaces;
 
 public interface IJwtService
 {

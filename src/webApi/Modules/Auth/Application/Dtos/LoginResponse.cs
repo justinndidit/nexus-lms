@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using webApi.Domain.Models;
 
-namespace webApi.Application.Dtos.Auth.Response;
+namespace webApi.Modules.Auth.Application.Dtos;
 
 public record LoginResponse(
     // [Required]

@@ -1,13 +1,10 @@
-using webApi.Application.Dtos.Auth.Request;
-using webApi.Application.Dtos.Auth.Response;
-using webApi.Domain.Dtos.Auth;
 using webApi.Modules.Auth.Application.Dtos;
 
-namespace webApi.Application.Interfaces;
+namespace webApi.Modules.Auth.Domain.Interfaces;
 
 public interface IAuthService
 {
-    public Task<CreateUserResponse> CreateUser(CreateUserRequest userData);
+    public Task<CreateUserResponse> RegisterUser(string email, string password);
     public Task<LoginResponse> Authenticate(LoginRequest req);
     public Task<VerifyEmailResponse> VerifyUserEmail(VerifyEmailRequest req);
     // public Task<DisableUserResponse> DisableUser(DisableUserRequest req); 

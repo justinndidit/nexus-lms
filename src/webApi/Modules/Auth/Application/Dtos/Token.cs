@@ -1,4 +1,4 @@
-namespace webApi.Application.Dtos;
+namespace webApi.Modules.Auth.Application.Dtos;
 
 public record Token(
     string JwtToken,

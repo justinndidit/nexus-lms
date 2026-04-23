@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using webApi.Domain.Models;
 
 namespace webApi.Data.Seeders;
 

@@ -1,7 +1,3 @@
-using webApi.Application.Dtos;
-using webApi.Application.Dtos.Auth.Response;
-using webApi.Domain.Dtos.Auth;
-using webApi.Domain.Models;
 
 namespace webApi.Modules.Auth.Application.Common.Mappers;
 
@@ -26,19 +22,6 @@ public static class AuthMapper
         return new User(req.Email, passwordHas);
     }
 
-    public static CreateUserResponse ModelToCreateUserResponse(User user, List<Role> roles)
-    {
-        List<string> roleNames = [];
-        foreach (var role in roles)
-        {
-            roleNames.Add(role.RoleName);
-        }
-        return new CreateUserResponse(
-            user.Id,
-            user.Email,
-            roleNames
-        );
-    }
 
     public static List<string> ModelToRoleNames(List<UserRole> roles)
     {

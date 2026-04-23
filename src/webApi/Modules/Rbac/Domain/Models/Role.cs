@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace webApi.Domain.Models;
+namespace webApi.Modules.Rbac.Domain.Models;
 
 public class Role
 {

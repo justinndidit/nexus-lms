@@ -1,19 +1,12 @@
 using System;
-using webApi.Application.Dtos.Auth;
-using webApi.Domain.Models;
 
-namespace webApi.Application.Common.Mappers;
+namespace webApi.Modules.Users.Application.Mappers;
 
 public static class UserMapper
 {
     public static List<string> ToUserRoles(User user)
     {
-        List<string> roleNames = [];
-        foreach(var userRole in user.UserRoles)
-        {
-            roleNames.Add(userRole.Role.RoleName!);
-        }
-        return roleNames;
+        return [.. user.UserRoles.Select(ur => ur.Role.RoleName)];
     }
 
 }

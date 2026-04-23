@@ -1,13 +1,11 @@
 using System.Security.Claims;
-using webApi.Application.Dtos;
-using webApi.Application.Interfaces;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
 
 
-namespace webApi.Application.Common.Security;
+namespace webApi.Modules.Auth.Application.Common.Security;
 
 public class JwtService : IJwtService
 {

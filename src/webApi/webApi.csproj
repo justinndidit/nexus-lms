@@ -12,7 +12,6 @@
     <Folder Include="Data\Migrations\" />
     <Folder Include="Data\Seeders\" />
     <Folder Include="Modules/Rbac/Application/" />
-    <Folder Include="Modules/Rbac/Application/Dtos/" />
     <Folder Include="Modules/Rbac/Application/Services/" />
     <Folder Include="Modules\Academic\" />
     <Folder Include="Modules\Assessment\" />
@@ -25,8 +24,8 @@
     <Folder Include="Modules\Users\Domain\Interfaces\" />
     <Folder Include="Modules\Users\Domain\Models\" />
     <Folder Include="Modules\Users\Infrastructure\" />
-    <Folder Include="Shared\" />
     <Folder Include="Shared\Dtos\" />
+    <Folder Include="Shared\Responses\" />
   </ItemGroup>
 
   <ItemGroup>

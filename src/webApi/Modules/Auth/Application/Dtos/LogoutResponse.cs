@@ -1,4 +1,4 @@
-namespace webApi.Application.Dtos.Auth.Response;
+namespace webApi.Modules.Auth.Application.Dtos;
 
 public record LogoutResponse(
     string Message

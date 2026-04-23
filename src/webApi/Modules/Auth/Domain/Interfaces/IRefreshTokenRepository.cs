@@ -1,7 +1,6 @@
 using System;
-using webApi.Domain.Models;
 
-namespace webApi.Application.Interfaces;
+namespace webApi.Modules.Auth.Domain.Interfaces;
 
 public interface IRefreshTokenRepository
 {

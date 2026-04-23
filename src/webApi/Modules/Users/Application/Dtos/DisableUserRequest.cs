@@ -1,4 +1,4 @@
-namespace webApi.Modules.Auth.Application.Dtos;
+namespace webApi.Modules.Users.Application.Dtos;
 
 public record DisableUserRequest(
     Guid UserId,
