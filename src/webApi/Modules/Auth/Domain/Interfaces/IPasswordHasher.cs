@@ -1,6 +1,6 @@
 using System;
 
-namespace webApi.Application.Interfaces;
+namespace webApi.Modules.Auth.Domain.Interfaces;
 
 public interface IPasswordHasher
 {

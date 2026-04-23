@@ -1,10 +1,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
-using webApi.Application.Interfaces;
 using webApi.Data;
-using webApi.Domain.Models;
 
-namespace webApi.Application.Repositories;
+namespace webApi.Modules.Auth.Infrastructure.Repositories;
 
 public class RefreshTokenRepository : IRefreshTokenRepository
 {

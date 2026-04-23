@@ -1,5 +1,5 @@
 
-namespace webApi.Domain.Models;
+namespace webApi.Modules.Auth.Domain.Models;
 public class RefreshToken
 {
     public Guid Id { get; set; }
@@ -18,12 +18,12 @@ public class RefreshToken
 
     private RefreshToken(){}
 
-    public static RefreshToken Create(string token, Guid userId, int daysValid = 7)
+    public static RefreshToken Create(string token, string userId, int daysValid = 7)
     {
         return new RefreshToken
         {
             Token = token,
-            UserId = userId,
+            UserId = Guid.Parse(userId),
             CreatedAt = DateTime.UtcNow,
             ExpiryDate = DateTime.UtcNow.AddDays(daysValid)
         };

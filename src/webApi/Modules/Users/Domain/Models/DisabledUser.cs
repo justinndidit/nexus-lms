@@ -1,7 +1,6 @@
 using System;
-using webApi.Domain.Models;
 
-namespace webApi.Modules.Auth.Domain.Models;
+namespace webApi.Modules.Users.Domain.Models;
 
 public class DisabledUser
 {

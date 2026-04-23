@@ -1,20 +1,4 @@
-
-using webApi.Application.Common.Mappers;
-using webApi.Domain.Models;
-using webApi.Application.Dtos.Auth.Request;
-using webApi.Application.Dtos.Auth.Response;
-using webApi.Application.Interfaces;
-using webApi.Domain.Dtos.Auth;
-using webApi.Data;
-using webApi.Modules.Auth.Application.Dtos;
-using webApi.Modules.Auth.Application.Common.Mappers;
-using webApi.Modules.Auth.Domain.Interfaces;
-using webApi.Application.Dtos;
-using webApi.Modules.Users.Application.Dtos;
-using webApi.Modules.Auth.Application.Common.Security;
-using webApi.Modules.Auth.Domain.Models;
-namespace webApi.Application.Services;
-
+namespace webApi.Modules.Auth.Application.Services;
 public class AuthService: IAuthService
 {
     private readonly LMSApiApplicationContext _dbContext;
@@ -44,46 +28,52 @@ public class AuthService: IAuthService
         _userService = userService;
     }
 
-    public async Task<CreateUserResponse> CreateUser(CreateUserRequest req)
+    public async Task<CreateUserResponse> RegisterUser(string email, string password)
     {
-        string passwordHash = _bcrypt.Hash(req.Password);
-        User user = await _userService.CreateUserWithDefaultRole(
-            new CreateUserCommand(req.Email, passwordHash)
-        );
+        var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {            
+            string passwordHash = _bcrypt.Hash(password);
+            var result = await _userService.CreateUserWithDefaultRole(email, passwordHash);
 
-        //send Email async - worker
-        //generate verification token
-        var verificationCode = AuthTokenGenerator.GenerateCode(6);
+            //send Email async - worker
+            //generate verification token
+            var verificationCode = AuthTokenGenerator.GenerateCode(6);
 
-        //populate email data
-        await _verificationTokenRepo.Create(
-            new VerificationToken(
-                req.Email,
-                verificationCode
-            )
-        );
-        //send email
-        _logger.LogInformation($"verificationCode: {verificationCode}");
-        //emit event
+            //populate email data
+            await _verificationTokenRepo.Create(new VerificationToken(email,verificationCode));
+            //send email
+            _logger.LogInformation($"verificationCode: {verificationCode}");
+            //emit event
 
-        return AuthMapper.ModelToCreateUserResponse(user, user.UserRoles.Select(ur => ur.Role).ToList());
+            await transaction.CommitAsync();
+            return new CreateUserResponse(
+                result.userId,
+                result.email,
+                result.roleNames
+            );
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Something went wrong registering user");
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
     public async Task<LoginResponse> Authenticate(LoginRequest req)
     {
-
         var user = await _userService.GetUserByEmail(req.Email);
         if( !_bcrypt.Verify(req.Password, user.PasswordHash)) throw new UnauthorizedAccessException("Invalid credentials");
         if(!user.IsActive) throw new UnauthorizedAccessException("This is user is disabled please contact supports");
 
-        List<string> roles = UserMapper.ToUserRoles(user);
-        var tokenData = await _GenerateJwtToken(user, roles);
+        var roles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList();
+        var tokenData = await _GenerateJwtToken(user.Id.ToString(), user.Email, roles);
 
         return AuthMapper.ToLoginResponse(
             user.Email,
             roles,
             tokenData
         );
-
     }
 
     public async Task<VerifyEmailResponse> VerifyUserEmail(VerifyEmailRequest req)
@@ -95,26 +85,27 @@ public class AuthService: IAuthService
 
             if(verificationToken is null || !verificationToken.IsTokenValid(req.Email)) throw new UnauthorizedAccessException("Invalid token or expired token");
 
-            User user = await _userService.GetUserByEmail(req.Email);
+            var user = await _userService.GetUserByEmail(req.Email);
             user.Activate();
-            user = await _userService.UpdateUserActiveStatus(
-                new UpdateUserActiveStatusCommand(
-                    user.Email,
-                    true
-                )
-            );
+
+            user = await _userService.UpdateUserActiveStatus(user.Email,true);
+            
             verificationToken.InvalidateVerificationToken();
             await _verificationTokenRepo.UpdateAsync(verificationToken);
 
             await transaction.CommitAsync();
 
+            var roles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList();
+
             var tokenData = await _GenerateJwtToken(
-                user,
-                AuthMapper.ModelToRoleNames(user.UserRoles));
+                user.Id.ToString(),
+                user.Email,
+                roles
+            );
 
             return new VerifyEmailResponse(
                 user.Email,
-                user.UserRoles.Select(ur=> ur.Role.RoleName).ToList(),//problem
+                roles,
                 tokenData
             );
         }
@@ -162,12 +153,13 @@ public class AuthService: IAuthService
             await _refreshTokenRepo.UpdateAsync(token);
 
             var tokenData = await _GenerateJwtToken(
-                token.User,
-                UserMapper.ToUserRoles(token.User)
+                token.User.Id.ToString(),
+                token.User.Email,
+                [.. token.User.UserRoles.Select(ur => ur.Role.RoleName)]
             );
             var refreshToken = RefreshToken.Create(
                 tokenData.RefreshToken,
-                token.UserId
+                token.UserId.ToString()
             );
             await _refreshTokenRepo.AddAsync(refreshToken);
             await transaction.CommitAsync();
@@ -196,12 +188,7 @@ public class AuthService: IAuthService
             var verificationCode = AuthTokenGenerator.GenerateCode(6);
 
             //populate email data
-            await _verificationTokenRepo.Create(
-                new VerificationToken(
-                    req.Email,
-                    verificationCode
-                )
-            );
+            await _verificationTokenRepo.Create( new VerificationToken(req.Email,verificationCode));
             //send email
             _logger.LogInformation($"verificationCode: {verificationCode}");
             //emit event
@@ -226,35 +213,22 @@ public class AuthService: IAuthService
     }
     public async Task<ResetPasswordResponse> ResetPassword(ResetPasswordRequest req)
     {
-        try
-        {
-            if(!(req.Password == req.RePassword)) throw new BadHttpRequestException("Password and RePassword must match");
-            var user = await _userService.UpdateUserPassword(
-                new UpdateUserPasswordCommand(
-                    req.Email,
-                    _bcrypt.Hash(req.Password)
-                )
-            );
+        if(!(req.Password == req.RePassword)) throw new BadHttpRequestException("Password and RePassword must match");
+        var user = await _userService.UpdateUserPassword(req.Email,_bcrypt.Hash(req.Password));
 
-            return new ResetPasswordResponse(
-                $"user {user.Id} updated successfully"
-            );
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e,$"error occured whilst processing request");
-            throw;
-        }
+        return new ResetPasswordResponse(
+            $"user {user.Id} updated successfully"
+        );
     }
 
-    private async Task<Token> _GenerateJwtToken(User user, List<string> roles)
+    private async Task<Token> _GenerateJwtToken(string userId, string email, List<string> roles)
     {
         string jwtToken = _jwtService.GenerateAccessToken(
-            new JwtPayload(user.Id,user.Email,roles)
+            new JwtPayload(userId,email,roles)
         );
         string refreshToken = _jwtService.GenerateRefreshToken();
 
-        await _refreshTokenRepo.AddAsync(RefreshToken.Create(refreshToken, user.Id));
+        await _refreshTokenRepo.AddAsync(RefreshToken.Create(refreshToken, userId));
         return AuthMapper.ToTokenData(jwtToken, refreshToken);
     }
 

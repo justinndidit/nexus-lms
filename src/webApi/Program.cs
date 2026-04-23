@@ -1,13 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using webApi.Application.Common.Security;
-using webApi.Application.Interfaces;
-using webApi.Application.Repositories;
-using webApi.Application.Services;
-using webApi.Data;
-using webApi.Data.DataExtensions;
-using webApi.Modules.Auth.Domain.Interfaces;
-using webApi.Modules.Auth.Infrastructure.Repositories;
-
 namespace webApi;
 
 public class Program
@@ -28,6 +19,7 @@ public class Program
         builder.Services.AddScoped<IRoleRepository, RoleRepository>();
         builder.Services.AddScoped<IAuthService, AuthService>();
         builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IRbacService, RbacService>();
         builder.Services.AddControllers();
         builder.Services.AddValidation();
 

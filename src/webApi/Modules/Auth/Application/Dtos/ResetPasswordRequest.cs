@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace webApi.Application.Dtos.Auth.Request;
+namespace webApi.Modules.Auth.Application.Dtos;
 
 public record ResetPasswordRequest(
     [Required]

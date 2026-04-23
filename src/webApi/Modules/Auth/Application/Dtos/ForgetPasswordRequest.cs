@@ -1,4 +1,4 @@
-namespace webApi.Application.Dtos.Auth.Request;
+namespace webApi.Modules.Auth.Application.Dtos;
 
 public record ForgetPasswordRequest(
     string Email

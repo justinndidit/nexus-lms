@@ -1,8 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using webApi.Application.Dtos.Auth;
-using webApi.Domain.Models;
 
-namespace webApi.Domain.Dtos.Auth;
+namespace webApi.Modules.Users.Application.Dtos;
 
 public record CreateUserRequest (
     [Required]

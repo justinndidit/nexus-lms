@@ -1,4 +1,4 @@
-namespace webApi.Application.Common.Responses;
+namespace webApi.Shared.Responses;
 public class ApiResponse<T>
 {
     public bool Success { get; set; }

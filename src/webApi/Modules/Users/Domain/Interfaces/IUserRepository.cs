@@ -1,8 +1,6 @@
 using System;
-using webApi.Domain.Dtos.Auth;
-using webApi.Domain.Models;
 
-namespace webApi.Application.Interfaces;
+namespace webApi.Modules.Users.Domain.Interfaces;
 
 public interface IUserRepository
 {

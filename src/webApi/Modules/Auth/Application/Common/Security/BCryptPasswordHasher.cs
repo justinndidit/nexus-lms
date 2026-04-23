@@ -1,7 +1,6 @@
 using System;
-using webApi.Application.Interfaces;
 
-namespace webApi.Application.Common.Security;
+namespace webApi.Modules.Auth.Application.Common.Security;
 
 public class BCryptPasswordHasher : IPasswordHasher
 {
