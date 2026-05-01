@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using webApi.Data;
+using webApi.Modules.Rbac.Domain.Interfaces;
+using webApi.Modules.Rbac.Domain.Models;
 
 namespace webApi.Modules.Rbac.Infrastructure.Repositories;
 
@@ -78,12 +80,22 @@ public class RoleRepository : IRoleRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IReadOnlyList<Permission>> GetAlUserPermission(Guid userId)
+    public async Task<IReadOnlyList<Permission>> GetAllUserPermission(Guid userId)
     {
         return await _context.UserRoles
             .Where(ur => ur.UserId == userId)
             .SelectMany(ur => ur.Role.RolePermissions)
             .Select(rp => rp.Permission)
+            .Distinct()
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<string>> GetAllUserRole(Guid userId)
+    {
+        return await _context.UserRoles
+            .Where(ur => ur.UserId == userId)
+            .Select(ur => ur.Role.RoleName)
             .Distinct()
             .AsNoTracking()
             .ToListAsync();

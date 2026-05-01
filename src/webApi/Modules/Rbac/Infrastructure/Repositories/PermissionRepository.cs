@@ -2,6 +2,8 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using webApi.Data;
 using webApi.Modules.Auth.Domain.Interfaces;
+using webApi.Modules.Rbac.Domain.Interfaces;
+using webApi.Modules.Rbac.Domain.Models;
 
 namespace webApi.Modules.Rbac.Infrastructure.Repositories;
 

@@ -1,4 +1,5 @@
 using System;
+using webApi.Modules.Auth.Domain.Models;
 
 namespace webApi.Modules.Auth.Domain.Interfaces;
 

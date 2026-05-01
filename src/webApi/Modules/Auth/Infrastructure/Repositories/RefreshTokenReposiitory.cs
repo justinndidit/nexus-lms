@@ -1,6 +1,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using webApi.Data;
+using webApi.Modules.Auth.Domain.Interfaces;
+using webApi.Modules.Auth.Domain.Models;
 
 namespace webApi.Modules.Auth.Infrastructure.Repositories;
 
@@ -16,7 +18,6 @@ public class RefreshTokenRepository : IRefreshTokenRepository
     public async Task<RefreshToken?> GetByToken(string token)
     {
         return await _dbContext.RefreshTokens
-                    .Include(u => u.User)
                     .FirstOrDefaultAsync(t => t.Token == token);
     }
 

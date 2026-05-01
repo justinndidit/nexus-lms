@@ -1,3 +1,12 @@
+using webApi.Data;
+using webApi.Modules.Auth.Application.Common.Mappers;
+using webApi.Modules.Auth.Application.Dtos;
+using webApi.Modules.Auth.Domain.Interfaces;
+using webApi.Modules.Auth.Domain.Models;
+using webApi.Modules.Rbac.Domain.Interfaces;
+using webApi.Modules.Users.Application.Dtos;
+using webApi.Modules.Users.Domain.Interfaces;
+
 namespace webApi.Modules.Auth.Application.Services;
 public class AuthService: IAuthService
 {
@@ -8,6 +17,8 @@ public class AuthService: IAuthService
     private readonly IRefreshTokenRepository _refreshTokenRepo;
     private readonly IVerificationTokenRepository _verificationTokenRepo;
     private readonly IUserService _userService;
+    private readonly IAuthTokenGenerator _authTokenGenerator;
+    private readonly IRbacService _rbacService;
 
     public AuthService(
                         LMSApiApplicationContext dbContext,
@@ -16,7 +27,9 @@ public class AuthService: IAuthService
                         IJwtService jwtService,
                         ILogger<AuthService> logger,
                         IVerificationTokenRepository verificatonTokenRepo,
-                        IUserService userService
+                        IUserService userService,
+                        IAuthTokenGenerator authTokenGenerator,
+                        IRbacService rbacService
                     )
     {
         _bcrypt = bcrypt;
@@ -26,6 +39,8 @@ public class AuthService: IAuthService
         _logger = logger;
         _verificationTokenRepo = verificatonTokenRepo;
         _userService = userService;
+        _authTokenGenerator = authTokenGenerator;
+        _rbacService = rbacService;
     }
 
     public async Task<CreateUserResponse> RegisterUser(string email, string password)
@@ -38,7 +53,7 @@ public class AuthService: IAuthService
 
             //send Email async - worker
             //generate verification token
-            var verificationCode = AuthTokenGenerator.GenerateCode(6);
+            var verificationCode = _authTokenGenerator.GenerateCode(6);
 
             //populate email data
             await _verificationTokenRepo.Create(new VerificationToken(email,verificationCode));
@@ -48,9 +63,9 @@ public class AuthService: IAuthService
 
             await transaction.CommitAsync();
             return new CreateUserResponse(
-                result.userId,
-                result.email,
-                result.roleNames
+                result.UserId.ToString(),
+                result.Email,
+                result.RoleNames
             );
         }
         catch (Exception e)
@@ -66,12 +81,13 @@ public class AuthService: IAuthService
         if( !_bcrypt.Verify(req.Password, user.PasswordHash)) throw new UnauthorizedAccessException("Invalid credentials");
         if(!user.IsActive) throw new UnauthorizedAccessException("This is user is disabled please contact supports");
 
-        var roles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList();
-        var tokenData = await _GenerateJwtToken(user.Id.ToString(), user.Email, roles);
+        var roles = await _rbacService.GetAllRolesByUserId(user.Id);
+
+        var tokenData = await _GenerateJwtToken(user.Id.ToString(), user.Email, [.. roles]);
 
         return AuthMapper.ToLoginResponse(
             user.Email,
-            roles,
+            [..roles],
             tokenData
         );
     }
@@ -95,17 +111,17 @@ public class AuthService: IAuthService
 
             await transaction.CommitAsync();
 
-            var roles = user.UserRoles.Select(ur => ur.Role.RoleName).ToList();
+            var roles = await _rbacService.GetAllRolesByUserId(user.Id);
 
             var tokenData = await _GenerateJwtToken(
                 user.Id.ToString(),
                 user.Email,
-                roles
+                [..roles]
             );
 
             return new VerifyEmailResponse(
                 user.Email,
-                roles,
+                [..roles],
                 tokenData
             );
         }
@@ -149,13 +165,16 @@ public class AuthService: IAuthService
             if(token.ExpiryDate <= DateTime.UtcNow)
                 throw new UnauthorizedAccessException("refresh token expired");
 
-            token.InvalidateRefreshToken();
+            token.Revoke();
             await _refreshTokenRepo.UpdateAsync(token);
 
+            var roles = await _rbacService.GetAllRolesByUserId(token.UserId);
+            var user = await _userService.GetUserByUserId(token.UserId);
+
             var tokenData = await _GenerateJwtToken(
-                token.User.Id.ToString(),
-                token.User.Email,
-                [.. token.User.UserRoles.Select(ur => ur.Role.RoleName)]
+                token.UserId.ToString(),
+                user.Email,
+                [.. roles]
             );
             var refreshToken = RefreshToken.Create(
                 tokenData.RefreshToken,
@@ -185,7 +204,7 @@ public class AuthService: IAuthService
         {
             //send Email async - worker
             //generate verification token
-            var verificationCode = AuthTokenGenerator.GenerateCode(6);
+            var verificationCode = _authTokenGenerator.GenerateCode(6);
 
             //populate email data
             await _verificationTokenRepo.Create( new VerificationToken(req.Email,verificationCode));
@@ -231,5 +250,4 @@ public class AuthService: IAuthService
         await _refreshTokenRepo.AddAsync(RefreshToken.Create(refreshToken, userId));
         return AuthMapper.ToTokenData(jwtToken, refreshToken);
     }
-
 }

@@ -1,4 +1,5 @@
 using webApi.Modules.Auth.Application.Dtos;
+using webApi.Modules.Users.Application.Dtos;
 
 namespace webApi.Modules.Auth.Domain.Interfaces;
 

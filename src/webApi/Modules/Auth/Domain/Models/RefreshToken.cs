@@ -1,4 +1,6 @@
 
+using webApi.Modules.Users.Domain.Models;
+
 namespace webApi.Modules.Auth.Domain.Models;
 public class RefreshToken
 {
@@ -14,8 +16,6 @@ public class RefreshToken
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    public User User { get; set; } = null!;
-
     private RefreshToken(){}
 
     public static RefreshToken Create(string token, string userId, int daysValid = 7)
@@ -29,7 +29,7 @@ public class RefreshToken
         };
     }
 
-    public void InvalidateRefreshToken()
+    public void Revoke()
     {
         IsRevoked = true;
     }
@@ -38,6 +38,6 @@ public class RefreshToken
     {
         return 
             !IsRevoked &&
-                CreatedAt >= DateTime.UtcNow;
+                ExpiryDate >= DateTime.UtcNow;
     }
 }

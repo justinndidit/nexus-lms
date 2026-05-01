@@ -3,7 +3,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 using System.Security.Cryptography;
-
+using webApi.Modules.Auth.Domain.Interfaces;
 
 namespace webApi.Modules.Auth.Application.Common.Security;
 
@@ -20,8 +20,7 @@ public class JwtService : IJwtService
 
         _jwtExpiration = config.GetSection("JwtConfig").GetSection("JwtExpirationInMinutes").Value ?? throw new Exception("Jwt expiration cannot be null");
     }
-    public string GenerateAccessToken(Modules.Auth.Application.Dtos.JwtPayload payload) =>  _generateToken(payload);
-
+    public string GenerateAccessToken(Dtos.JwtPayload payload) =>  _generateToken(payload);
     public string GenerateRefreshToken()
     {
         var randomBytes = new byte[64];

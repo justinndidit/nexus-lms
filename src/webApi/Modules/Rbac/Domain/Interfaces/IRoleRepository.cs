@@ -1,9 +1,12 @@
 
+using webApi.Modules.Rbac.Domain.Models;
+
 namespace webApi.Modules.Rbac.Domain.Interfaces;
 
 public interface IRoleRepository
 {    
     Task<Role?> GetByIdAsync(Guid id);
+    Task<IReadOnlyList<string>> GetAllUserRole(Guid userId);
     Task<Role?> GetByNameAsync(string roleName);
     Task<IEnumerable<Role>> GetAllAsync();
     Task CreateRole(Role role);
@@ -15,5 +18,5 @@ public interface IRoleRepository
     void DeleteRoleTx(Role role);
     Task AddPermissionToRoleTx(Guid roleId, Guid permissionId);
     Task AddUserToRole(Guid userId, Guid roleId);
-    Task<IReadOnlyList<Permission>> GetAlUserPermission(Guid userId);
+    Task<IReadOnlyList<Permission>> GetAllUserPermission(Guid userId);
 }

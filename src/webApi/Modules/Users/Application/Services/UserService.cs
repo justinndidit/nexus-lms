@@ -1,4 +1,10 @@
 
+using webApi.Data;
+using webApi.Modules.Rbac.Application.DTOs;
+using webApi.Modules.Rbac.Domain.Interfaces;
+using webApi.Modules.Users.Domain.Interfaces;
+using webApi.Modules.Users.Domain.Models;
+
 namespace webApi.Modules.Users.Application.Services;
 
 public class UserService : IUserService
@@ -22,20 +28,34 @@ public class UserService : IUserService
         _rbacService = rbacService;
     }
 
-    public async Task<(string userId, string email, List<string> roleNames)> CreateUserWithDefaultRole(string email, string passwordHash)
+    public async Task<CreateUserResult> CreateUserWithDefaultRole(string email, string passwordHash)
     {
-        if (await _userRepo.GetUserByEmail(email) is not null)
-            throw new InvalidOperationException($"user with Email {email} already exists");  
+        using var transaction = await _dbContext.Database.BeginTransactionAsync();
+        try
+        {
+            if (await _userRepo.GetUserByEmail(email) is not null)
+                throw new InvalidOperationException($"user with Email {email} already exists");  
 
-        User user = await _userRepo.CreateUser(
-            new User(email, passwordHash)
-        );
-        _logger.LogInformation("User created successfully!");
+            User user = await _userRepo.CreateUser(
+                new User(email, passwordHash)
+            );
+            _logger.LogInformation("User created successfully!");
 
-        await _rbacService.AssignUserToRole(user.Id, _defaultUserRoleName);
-        _logger.LogInformation("default role assigned to user");
+            await _rbacService.AssignUserToRole(user.Id, _defaultUserRoleName);
+            _logger.LogInformation("default role assigned to user");
 
-        return (user.Id.ToString(), user.Email, user.UserRoles.Select(ur => ur.Role.RoleName).ToList());
+            return new CreateUserResult(
+                user.Id,
+                user.Email,
+                [_defaultUserRoleName]
+            );
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "something went wrong");
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
     
     public async Task<User> GetUserByEmail(string email)
@@ -73,6 +93,11 @@ public class UserService : IUserService
     public async Task<bool> UserWithEmailExists(string email)
     {
         return await _userRepo.GetUserByEmail(email) is not null;
+    }
+
+    public async Task<User> GetUserByUserId(Guid userId)
+    {
+        return await _userRepo.GetUserById(userId) ?? throw new KeyNotFoundException("user does not exist");
     }
 }
 
