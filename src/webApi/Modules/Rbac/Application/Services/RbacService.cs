@@ -1,4 +1,5 @@
 using webApi.Modules.Rbac.Domain.Interfaces;
+using webApi.Modules.Rbac.Domain.Models;
 
 namespace webApi.Modules.Rbac.Application.Services;
 public class RbacService : IRbacService
@@ -17,12 +18,18 @@ public class RbacService : IRbacService
         await _roleRepo.AddUserToRole(userId, role.Id);
     }
 
+    public async Task<IReadOnlyList<string>> GetAllRolesByUserId(Guid userId)
+    {
+        return await _roleRepo.GetAllUserRole(userId);
+    }
+
     public async Task<Role> GetRoleByRoleName(string roleName)
     {
         return 
             await _roleRepo.GetByNameAsync(roleName)
             ?? throw new KeyNotFoundException("Role not found");
     }
+
 
     public async Task<bool> RoleWithNameExists(string roleName)
     {

@@ -1,4 +1,5 @@
 using System;
+using webApi.Modules.Rbac.Domain.Models;
 
 namespace webApi.Modules.Rbac.Domain.Interfaces;
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using webApi.Shared.Responses;
 using webApi.Modules.Auth.Application.Dtos;
 using webApi.Modules.Auth.Domain.Interfaces;
+using webApi.Modules.Users.Application.Dtos;
 
 namespace webApi.Modules.Auth.Api.Controllers;
 [ApiController]

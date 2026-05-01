@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using webApi.Modules.Rbac.Domain.Models;
 
 namespace webApi.Data.Seeders;
 

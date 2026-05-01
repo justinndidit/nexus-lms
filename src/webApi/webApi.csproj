@@ -18,7 +18,9 @@
     <Folder Include="Modules\Auth\Application\Common\Mappers\" />
     <Folder Include="Modules\Auth\Application\Util\" />
     <Folder Include="Modules\Enrollment\" />
-    <Folder Include="Modules\Notification\" />
+    <Folder Include="Modules\Notification\Domain\Models\" />
+    <Folder Include="Modules\Notification\Infrastructure\" />
+    <Folder Include="Modules\Rbac\Application\DTOs\" />
     <Folder Include="Modules\Users\Api\" />
     <Folder Include="Modules\Users\Application\Services\" />
     <Folder Include="Modules\Users\Domain\Interfaces\" />

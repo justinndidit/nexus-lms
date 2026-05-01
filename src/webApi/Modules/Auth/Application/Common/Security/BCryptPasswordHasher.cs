@@ -1,4 +1,5 @@
-using System;
+
+using webApi.Modules.Auth.Domain.Interfaces;
 
 namespace webApi.Modules.Auth.Application.Common.Security;
 

@@ -1,6 +1,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using webApi.Data;
+using webApi.Modules.Rbac.Domain.Models;
+using webApi.Modules.Users.Domain.Interfaces;
+using webApi.Modules.Users.Domain.Models;
 
 namespace webApi.Modules.Users.Infrastructure.Repositories;
 
@@ -22,14 +25,14 @@ public class UserRepository(LMSApiApplicationContext dbContext) : IUserRepositor
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<User?> GetUserByEmail(string email) =>
+    public async Task<User> GetUserByEmail(string email) =>
         await _dbContext.Users
-                .Include(u => u.UserRoles)
-                .ThenInclude(ur => ur.Role)
-                .FirstOrDefaultAsync(u => u.Email == email);
+                .FirstOrDefaultAsync(u => u.Email == email)
+                ?? throw new KeyNotFoundException("user not found");
 
-    public async Task<User?> GetUserById(Guid userId) =>
-        await _dbContext.Users.FindAsync(userId);
+    public async Task<User> GetUserById(Guid userId) =>
+        await _dbContext.Users.FindAsync(userId)
+                ?? throw new KeyNotFoundException("user net found");
 
     public async Task<User> UpdateUser(User user)
     {

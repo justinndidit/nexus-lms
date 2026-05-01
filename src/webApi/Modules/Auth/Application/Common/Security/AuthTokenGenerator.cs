@@ -1,12 +1,16 @@
 using System.Security.Cryptography;
 using System.Text;
+using webApi.Modules.Auth.Domain.Interfaces;
 namespace webApi.Modules.Auth.Application.Common.Security;
-
-public class AuthTokenGenerator
+public class AuthTokenGenerator :IAuthTokenGenerator
 {
-    private static readonly char[] chars =
-        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".ToCharArray();
-    public static string GenerateCode(int length)
+    private readonly char[] _secret;
+
+    public AuthTokenGenerator(IConfiguration config)
+    {
+        _secret = (config.GetSection("AuthenticationToken").GetSection("Secret").Value ?? throw new Exception("Jwt expiration cannot be null")).ToCharArray();
+    }
+    public string GenerateCode(int length)
     {
         if (length != 6 && length != 8)
         {
@@ -21,7 +25,7 @@ public class AuthTokenGenerator
             var result = new StringBuilder(length);
             foreach (var byteValue in bytes)
             {
-                result.Append(chars[byteValue % chars.Length]);
+                result.Append(_secret[byteValue % _secret.Length]);
             }
 
             return result.ToString();

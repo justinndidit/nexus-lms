@@ -1,6 +1,8 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using webApi.Modules.Auth.Domain.Models;
+using webApi.Modules.Rbac.Domain.Models;
+using webApi.Modules.Users.Domain.Models;
 
 namespace webApi.Data;
 

@@ -1,4 +1,6 @@
 
+using webApi.Modules.Auth.Application.Dtos;
+
 namespace webApi.Modules.Auth.Application.Common.Mappers;
 
 public static class AuthMapper
@@ -17,21 +19,4 @@ public static class AuthMapper
         return new Token(jwtToken, refreshToken);
     }
 
-    public static User CreateUserRequestToModel(CreateUserRequest req, string passwordHas)
-    {
-        return new User(req.Email, passwordHas);
-    }
-
-
-    public static List<string> ModelToRoleNames(List<UserRole> roles)
-    {
-        List<string> roleNames = [];
-
-        foreach (var role in roles)
-        {
-            roleNames.Add(role.Role.RoleName);
-        }
-
-        return roleNames;
-    }
 }
